@@ -56,13 +56,18 @@ Prepare configuration file for logging query events, e.g. `<path_to_trino>/etc/q
     <Appenders>
         <RollingFile name="JsonRollingFile">
             <FileName>/var/log/trino/trino-querylog.log</FileName>
-            <FilePattern>/var/log/trino/%d{yyyy-MM-dd-hh}-%i.log</FilePattern>
+            <FilePattern>/var/log/trino/trino-querylog-%d{yyyy-MM-dd-HH}.log</FilePattern>
             <JsonLayout charset="UTF-8" includeStacktrace="false"
                         compact="true" eventEol="true" objectMessageAsJsonObject="true"/>
             <Policies>
-                <SizeBasedTriggeringPolicy size="10 MB"/>
+                <TimeBasedTriggeringPolicy interval="1h" modulate="true"/>
             </Policies>
-            <DefaultRolloverStrategy max="10"/>
+            <DefaultRolloverStrategy>
+                <Delete basePath="/var/log/trino/" maxDepth="1">
+                    <IfFileName glob="trino-querylog-*.log" />
+                    <IfLastModified age="3d" />
+                </Delete>
+            </DefaultRolloverStrategy>
         </RollingFile>
     </Appenders>
 
@@ -72,6 +77,7 @@ Prepare configuration file for logging query events, e.g. `<path_to_trino>/etc/q
         </Root>
     </Loggers>
 </Configuration>
+
 ```
 
 Most of the configuration can be safely changed, but for easier consumption by FileBeat it is advised to leave at least JsonLayout and its parameters. 
